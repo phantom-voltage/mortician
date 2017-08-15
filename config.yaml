@@ -1,0 +1,34 @@
+Settings:
+    global_db: scores.db
+    global_output: /srv/staging/test/output
+    global_var: /home/phantom/docker/mortician
+    print_ctrl: True
+
+Games:
+    
+    Angband:
+        score_dir: /srv/staging/test/angband/lib/scores/
+        action: action_angband 
+        recursive: False
+        watch_file: scores.lok
+        db_path: scores.db
+
+        output_file: 
+
+    Poschengband:
+        score_dir: /srv/staging/test/poschengband/lib/apex/
+        action: action_poschengband
+        recursive: False
+        watch_file: 
+        db_path: scores.db
+
+        output_file: 
+            
+    Cataclysm-DDA:
+        score_dir: /srv/staging/test/cdda_morgue
+        action: action_cataclysm
+        recursive: True
+        watch_file: 
+        db_path: scores.db
+
+        output_file: output1
