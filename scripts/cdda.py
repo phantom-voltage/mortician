@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import re
 import sqlite3
+import codecs
 
 season_length = 14
 
@@ -18,9 +19,9 @@ def __get_line(term, lines):
         if term in line:
             return num
             
-def __updatedb(self, p):
+def __updatedb(dbPath, p):
     
-    conn = sqlite3.connect(self.game.db_path)
+    conn = sqlite3.connect(dbPath)
 
     
     #check if db file has the requisite table#
@@ -48,9 +49,9 @@ def __updatedb(self, p):
                     ver text,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP);''')
                     
-    conn.execute('''INSERT INTO cdda_scores (name, prof, days, dist, kills, hshot, dmg, heal, cause, last, fmsg, ver)
-                                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''',
-                 (str(p["name"]), str(p["prof"]), int(p["days"]), int(p["dist"]), int(p["kills"]), int(p["hshot"]), int(p["dmg"]), int(p["heal"]), str(p["cause"]), str(p["last"]), str(p["fmsg"]), str(p["ver"])))
+    conn.execute('''INSERT INTO cdda_scores (name, prof, days, dist, kills, hshot, dmg, heal, cause, last, fmsg, ver, created_at)
+                                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''',
+                 (str(p["name"]), str(p["prof"]), int(p["days"]), int(p["dist"]), int(p["kills"]), int(p["hshot"]), int(p["dmg"]), int(p["heal"]), p["cause"], str(p["last"]), str(p["fmsg"]), str(p["ver"]), str(p["date"])))
 
  
     conn.commit()
@@ -58,7 +59,7 @@ def __updatedb(self, p):
 
     
 
-def parse_player(linelist):
+def parse_player(date, linelist):
 
     ## Get version ##
     ver = __grab("Cataclysm - Dark Days Ahead version", linelist)
@@ -167,45 +168,32 @@ def parse_player(linelist):
         "cause" : cause,
         "last" : last_words,
         "fmsg" : final_message,
-        "ver"  : ver
+        "ver"  : ver,
+        "date" : date
     }
 
     return player
 
 #if __name__ == "__main__":
-def autopsy_cdda(self, file_path):
+def autopsy_cdda(filePath, dbPath):
 
-    try:
-        autopsy = open(file_path, 'r')
-    except IOError:
-        print("Could not open %s"%(file_path))
-
-    ## File stuff ##
-    with autopsy:
+    with codecs.open(filePath, 'r', 'utf-8') as autopsy:
         linelist = autopsy.readlines()
 
-    p = parse_player(linelist)
-   
+    rawDate = filePath.split("-")[1:7]
+    rawDate[5]=rawDate[5][:-4]
     
-    ## Create first line of output
-    msg = "%s, the %s, %s"%(p["name"], p["prof"], p["cause"])
+    date = rawDate[0]+ "-" + rawDate[1] + "-" + rawDate[2] \
+         + " " + rawDate[3] + ":" + rawDate[4] + ":" + rawDate[5]
+ 
 
-    if p["last"] != None:
-        msg += " \"" + p["last"] + "\"\n"
-    else:
-        msg += "\n"
+    p = parse_player(date, linelist)
+   
 
-
-    if p["fmsg"] != None:
-        msg += "[" + p["fmsg"] +"]" + "\n"
-
-    msg += "Days: %d Kills: %d Dist: %s Dmg: %s heal: %s hshot: %s\n" %(p["days"], p["kills"], p["dist"], p["dmg"], p["heal"], p["hshot"])
-
-    if self.game.db_path is not None:
-         __updatedb(self, p)
+    __updatedb(dbPath, p)
 
 
-    return msg
+    return 
     
 
     

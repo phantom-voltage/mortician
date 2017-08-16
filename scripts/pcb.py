@@ -19,9 +19,9 @@ import sqlite3
 #from config import poschengband_work_dir
 
 #def updatedb(db_path, name, prof, days, dist, kills, headshots, dmg, healed):
-def updatedb(self, p):
+def update_db(dbPath, p):
 
-    conn = sqlite3.connect(self.game.db_path)
+    conn = sqlite3.connect(dbPath)
 
 #    line1 = "%d - %s the %s %s, level %s, AU %d, Turns %d\n" % (p['pts'], p['name'], race, cls, clvl, p['gold'], p['turns'])
 #    line2 = "Killed by %s %s\n" % (p['how'], dlvl)
@@ -55,9 +55,9 @@ def updatedb(self, p):
                     ver text,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP);''')
                     
-    conn.execute('''INSERT INTO pcb_scores (name, pts, sex, raceid, classid, pers, clvl, max_clvl, dlvl, max_dlvl, gold, turns, winner, how, ver)
-                                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''',
-                (str(p['name']), int(p['pts']), str(p['sex']), int(p['raceid']), int(p['classid']), int(p['pers']), int(p['clvl']), int(p['max_clvl']), int(p['dlvl']), int(p['max_dlvl']), int(p['gold']), int(p['turns']), int(0), str(p['how']), str(p['ver'])))
+    conn.execute('''INSERT INTO pcb_scores (name, pts, sex, raceid, classid, pers, clvl, max_clvl, dlvl, max_dlvl, gold, turns, winner, how, ver, created_at)
+                                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''',
+                (str(p['name']), int(p['pts']), str(p['sex']), int(p['raceid']), int(p['classid']), int(p['pers']), int(p['clvl']), int(p['max_clvl']), int(p['dlvl']), int(p['max_dlvl']), int(p['gold']), int(p['turns']), int(0), str(p['how']), str(p['ver']), str(p['date'])))
 
  
     conn.commit()
@@ -245,7 +245,7 @@ def format(p):
     return line1+line2
 
 # mighty main method
-def score_parse(self,path):
+def score_parse(path, dbPath):
 #    if len(sys.argv) < 2:
 #        print 'usage: %s SAVEFILE' % sys.argv[0]
 #        print '    (e.g. lib/scores/scores.raw)'
@@ -285,27 +285,13 @@ def score_parse(self,path):
             players.append(p)
 
 
-    var_file = self.var_dir+"/.pcb_players"
-    if os.path.isfile(var_file):
-    
-        with open(var_file, 'rb') as out:
-            old_players = pickle.load(out)
-    else:
-        old_players = []
-
-    msg = ""
     for p in players:
-        if p not in old_players:
-            msg += format(p)
-            
-            if self.game.db_path is not None :
-                updatedb(self,p)
-        
-    with open(var_file, 'wb') as out:
-        pickle.dump(players, out, -1)
+       update_db(dbPath, p)
 
-    #print(msg)
-    return msg
+    with open(".pcb_players", "wb") as out:
+        pickle.dump(players, out, -1)
+        
+    return 
 
 if __name__ == "__main__":
     score_parse() 
